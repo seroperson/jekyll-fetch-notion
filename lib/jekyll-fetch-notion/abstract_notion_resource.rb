@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module JekyllNotion
+module JekyllFetchNotion
   class AbstractNotionResource
     def initialize(config:)
       @notion = Notion::Client.new
@@ -32,15 +32,15 @@ module JekyllNotion
     def id?
       if id.nil? || id.empty?
         Jekyll.logger.warn("Jekyll Notion:",
-                           "Database or page id is not provided. Cannot read from Notion.")
+          "Database or page id is not provided. Cannot read from Notion.")
         return false
       end
       true
     end
 
     def build_blocks(block_id)
-      NotionToMd::Blocks.build(:block_id => block_id) do |nested_id|
-        @notion.block_children({ :block_id => nested_id })
+      NotionToMd::Blocks.build(block_id: block_id) do |nested_id|
+        @notion.block_children({block_id: nested_id})
       end
     end
   end

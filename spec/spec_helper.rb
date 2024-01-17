@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "jekyll"
-require File.expand_path("../lib/jekyll-notion", __dir__)
+require File.expand_path("../lib/jekyll-fetch-notion", __dir__)
 require "simplecov"
 require "vcr"
 
@@ -10,6 +10,7 @@ SimpleCov.start do
 end
 
 ENV["JEKYLL_ENV"] = "test"
+ENV["NOTION_TOKEN"] = "dummy"
 
 Jekyll.logger.log_level = :error
 
@@ -33,8 +34,8 @@ VCR.configure do |config|
   end
 
   config.default_cassette_options = {
-    :allow_playback_repeats => true,
-    :record                 => :new_episodes,
+    allow_playback_repeats: true,
+    record: :new_episodes
   }
 end
 

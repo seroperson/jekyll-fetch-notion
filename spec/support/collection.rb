@@ -12,7 +12,7 @@ RSpec.shared_examples "a jekyll collection" do |collection_name|
 
   context "when site is processed a second time" do
     before(:each) do
-      VCR.use_cassette("notion_database") { site.process }
+      VCR.use_cassette("notion_database") { JekyllFetchNotion::FetchCommand.process([], config) }
     end
 
     it "keeps the collection with the same length" do

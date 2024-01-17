@@ -24,7 +24,7 @@ RSpec.shared_examples "a jekyll data object" do |data_name|
   end
 
   it "stores multi_select into the data object" do
-    expected_value = %w(mselect1 mselect2 mselect3)
+    expected_value = %w[mselect1 mselect2 mselect3]
     expect(site.data[data_name]).to include("multi_select" => expected_value)
   end
 

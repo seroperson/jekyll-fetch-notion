@@ -1,40 +1,83 @@
-# jekyll-notion
+# jekyll-fetch-notion
 
-Import notion pages to jekyll.
+The Jekyll plugin introduces the `fetch_notion` command. This command fetches all Notion
+content as specified by the `_config.yml` file and places it directly into your git
+repository, respecting the corresponding directory structure. This project is a fork of
+[jekyll-notion][1], created due to incompatible synchronization methods. You can find more
+details in [this pull request][10].
+
+*Note: Data and page fetching are planned for future releases but are not yet available.*
+
+The original project was designed with the idea that Notion content should be fetched
+during site building and not tracked by git. This project, however, takes a different
+approach. It arranges your workflow so that your Notion content is git-tracked and
+fetched before site building.
+
+I believe this method aligns better with Jekyll's "ideology" and also offers several
+advantages:
+
+- Your Notion content is git-tracked and preserved. This ensures a smooth transition from
+  Notion back to plain `.md` editing or to another synchronization tool. As Jekyll is a
+  static site generator, everything remains static.
+- Separating Notion synchronization from site building simplifies the process and
+  provides you more precise control. For example, you again can git-clone and build a
+  site as-is without Notion token.
+
+However, every implementation has its own pros and cons. Choose the one that best suits
+your needs.
+
+For more insights into my experience with `jekyll-fetch-notion`, check out these posts:
+
+- [Yet another way to establish Notion + Jekyll synchronization][12]
+- [Notion + Jekyll images synchronization][11]
 
 ## Installation
 
-Use gem to install.
+Use `gem` to install:
+
 ```bash
-$ gem install 'jekyll-notion'
+gem install 'jekyll-fetch-notion'
 ```
 
-Or add it to the `Gemfile`.
+Or add it to the `Gemfile`:
+
 ```ruby
-# Gemfile
-gem 'jekyll-notion'
+gem 'jekyll-fetch-notion'
 ```
 
-And update your jekyll plugins property in `_config.yml`.
+And then update your jekyll plugins property in `_config.yml`:
 
 ```yml
 plugins:
-  - jekyll-notion
+  - jekyll-fetch-notion
 ```
 
 ## Usage
 
-Before using the gem, create an integration and generate a secret token. For more in-depth instructions, refer to the Notion "Getting Started" [guide](https://developers.notion.com/docs/getting-started).
+Before using the gem, create an integration and generate a secret token. For more in-depth
+instructions refer to the Notion "Getting Started" [guide][2].
 
-Once you have your secret token, make sure to export it into an environment variable named `NOTION_TOKEN`.
+Once you have your secret token, make sure to export it into an environment variable named
+`NOTION_TOKEN`:
 
 ```bash
-$ export NOTION_TOKEN=<secret_...>
+export NOTION_TOKEN=<secret_...>
 ```
+
+Then you can run command to fetch all the Notion content and place it inside your's site
+repository:
+
+```bash
+jekyll fetch_notion
+```
+
+Then you probably need to stage, commit and push all the fetched files to trigger your
+default CI build flow and make your updated site deployed.
 
 ### Databases
 
-Once the [notion database](https://developers.notion.com/docs/working-with-databases) has been shared, specify the database `id` in the `_config.yml` file as follows.
+Once the [notion database][3] has been shared, specify the database `id` in the
+`_config.yml` file as follows:
 
 ```yml
 notion:
@@ -44,7 +87,7 @@ notion:
 
 By default, the notion pages in the database will be loaded into the `posts` collection.
 
-We can also define __multiple databases__ as follows.
+We can also define multiple databases as follows:
 
 ```yml
 collections:
@@ -60,16 +103,17 @@ notion:
       collection: films
 ```
 
-After running `jekyll build` (or `serve`) command, the `posts`, `recipes` and `films` collections will be loaded with pages from the notion databases.
+After running `jekyll fetch_notion` command, the `posts`, `recipes` and `films`
+collections will be fetched with pages from the notion databases.
 
 #### Database options
 
 Each dabatase support the following options.
 
-* `id`: the notion database unique identifier,
-* `collection`: the collection each page belongs to (posts by default),
-* `filter`: the database [filter property](https://developers.notion.com/reference/post-database-query-filter),
-* `sorts`: the database [sorts criteria](https://developers.notion.com/reference/post-database-query-sort),
+- `id`: the notion database unique identifier
+- `collection`: the collection each page belongs to (posts by default)
+- `filter`: the database [filter property][4]
+- `sorts`: the database [sorts criteria][5]
 
 ```yml
 notion:
@@ -82,155 +126,48 @@ notion:
 
 #### Posts date
 
-The `created_time` property of a notion page is used to set the date in the post filename. This is the date used for the `date` variable of the [predefined variables for posts](https://jekyllrb.com/docs/front-matter/#predefined-variables-for-posts).
+The `created_time` property of a notion page is used to set the date in the post filename.
+This is the date used for the `date` variable of the [predefined variables for posts][6].
 
-It's important to note that the `created_time` cannot be modifed. However, if you wish to change the date of a post, you can create a new page property named "date" (or "Date"). This way, the posts collection will use the `date` property for the post date variable instead of the `created_time`.
+It's important to note that the `created_time` cannot be modifed. However, if you wish to
+change the date of a post, you can create a new page property named "date" (or "Date").
+This way, the posts collection will use the `date` property for the post date variable
+instead of the `created_time`.
 
-### Pages
-
-Individual Notion pages can also be loaded into Jekyll. Just define the `page` property as follows.
-
-```yml
-notion:
-  pages:
-    - id: 5cfed4de3bdc4f43ae8ba653a7a2219b
-```
-
-As databases, we can set up multiple pages.
-
-```yaml
-notion:
-  pages:
-    - id: e42383cd49754897b967ce453760499f
-    - id: b0e688e199af4295ae80b67eb52f2e2f
-    - id: 2190450d4cb34739a5c8340c4110fe21
-```
-
-The filename of the generated page is the notion page title. Check [below](#page-filename) for more info.
-
-All properties assigned to a notion page will be interpreted by jekyll as front matter. For example, if the [permalink](https://jekyllrb.com/docs/permalinks/#front-matter) property is set to `/about/` in the notion page, jekyll will use it to create the corresponding path at the output directory at `/about/index.html`.
-
-### Data
-
-Instead of storing the notion pages in a collection or in the pages list, you can assign them to the data object.Just declare the `data` property next to the page or database id.
-
-```yml
-notion:
-  databases:
-    - id: b0e688e199af4295ae80b67eb52f2e2f
-    - id: e42383cd49754897b967ce453760499f
-      data: films
-  pages:
-    - id: e42383cd49754897b967ce453760499f
-    - id: b0e688e199af4295ae80b67eb52f2e2f
-      data: about
-```
-
-Page properties and body of the notion page are stored as a hash object.
-
-Data objects can be accessed as follows.
-
-```html
-<ul>
-{% for film in site.data.films %}
-  <li>{{ film.title }}</li>
-{% endfor %}
-</ul>
-```
-
-Notice, the page body is stored in the key `content`.
-
-```html
-{{ site.data.about.content }}
-```
-
-The rest of properties are mapped as expected. For more info go to [notion properties](#notion-properties).
-
-### Watch
-
-By default, databases are only requested during the first build. Subsequent builds use the results from the cache.
-
-Set `fetch_on_watch` to true to allow request on each rebuild.
-
-```yml
-notion:
-  fetch_on_watch: true
-  databases:
-    - id: e42383cd49754897b967ce453760499f
-```
-
-And that's all. Each page in the notion database will be included in the selected collection.
-
-### Cache
-
-Starting from version 2.4.0, every request to Notion is cached locally. The cache enables the retrieval of Notion resources only during the first request. Subsequent requests are fetched from the cache, which can significantly reduce build times.
-
-The cache mechanism is based on the [vcr](https://github.com/vcr/vcr) gem, which records HTTP requests. Every Notion resource, whether it is a database or page, is stored in an independent file using the document ID as the filename. For example, a database ID e42383cd49754897b967ce453760499f will be stored in the following path:
-
-```bash
-.cache/jekyll-notion/vcr_cassetes/e42383cd49754897b967ce453760499f.yml
-```
-
-**Note: The `cache` option invalidates the fetch_on_watch feature.**
-
-#### Cache folder
-
-By default, the cache folder is `.cache/jekyll-notion/vcr_cassetes`, but you can change this folder by setting the `cache_dir` property in the `_config.yml` file as follows.
-
-```yaml
-notion:
-  cache_dir: another/folder
-```
-
-The path must be relative to the working folder.
-
-#### Cleaning cache
-
-To clear the cache, delete the cache folder. If you want to remove a specific cache file, locate the file that matches the Notion resource ID and delete it.
-
-#### Disabling cache
-
-If you're not interested in the cache or you just want to disable it, set the ˋcache` option to false.
-
-```yaml
-notion:
-  cache: false
-```
-
-### Fetch mode
-
-By default, plugin works so that during the build it pulls all the stuff from
-Notion and stores results in the cache. They won't be stored in your site's
-repository.
-
-If you want to configure the sync so your Notion's content will be under git
-control, then fetch mode comes in handy. While this mode is enabled, during
-the build plugin does nothing but instead it makes command `jekyll fetch_notion`
-available which will download all the markdown content according to database
-configuration (currently only database fetching is implemented) and place
-it in corresponding source directories.
-
-To make it enabled, the following configuration must be set:
-
-```yaml
-notion:
-  fetch_mode: true
-```
-
-## Notion properties
+### Notion properties
 
 Notion page properties are set for each document in the front matter.
 
-Please, refer to the [notion_to_md](https://github.com/emoriarty/notion_to_md/) gem to learn more.
+Please, refer to the [notion_to_md][8] gem to learn more.
 
-## Page filename
+### Page filename
 
 There are two kinds of documents in Jekyll: posts and others.
 
-When the document is a post, the filename format contains the `created_time` property plus the page title as specified in [jekyll docs](https://jekyllrb.com/docs/posts/#creating-posts).
+When the document is a post, the filename format contains the `created_time` property
+plus the page title as specified in [jekyll docs][9].
 
 ```
 YEAR-MONTH-DAY-title.MARKUP
 ```
 
 The filename for any other document is the page title.
+
+## Alternatives
+
+Actually, there are a lot of alternatives available, but, however, mostly all of them are
+not so mature and hard to extend. This one (like `jekyll-notion`) is tested by time and
+easy to extend because of `notion_to_md` usage.
+
+[1]: https://github.com/emoriarty/jekyll-notion
+[2]: https://developers.notion.com/docs/getting-started
+[3]: https://developers.notion.com/docs/working-with-databases
+[4]: https://developers.notion.com/reference/post-database-query-filter
+[5]: https://developers.notion.com/reference/post-database-query-sort
+[6]: https://jekyllrb.com/docs/front-matter/#predefined-variables-for-posts
+[7]: https://jekyllrb.com/docs/permalinks/#front-matter
+[8]: https://github.com/emoriarty/notion_to_md/
+[9]: https://jekyllrb.com/docs/posts/#creating-posts
+[10]: https://github.com/emoriarty/jekyll-notion/pull/68
+[11]: https://seroperson.me/2023/11/16/notion-jekyll-images-synchronization/
+[12]: https://seroperson.me/2023/08/26/yet-another-way-to-establish-notion-jekyll-synchronization/

@@ -24,7 +24,7 @@ RSpec.shared_examples "a jekyll page" do
   end
 
   it "stores multi_select into page data" do
-    expected_value = %w(mselect1 mselect2 mselect3)
+    expected_value = %w[mselect1 mselect2 mselect3]
     expect(site.pages.first.data).to include("multi_select" => expected_value)
   end
 

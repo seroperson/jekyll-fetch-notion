@@ -1,4 +1,4 @@
-module JekyllNotion
+module JekyllFetchNotion
   class FileCreator
     attr_reader :path, :content
     def initialize(path, content)

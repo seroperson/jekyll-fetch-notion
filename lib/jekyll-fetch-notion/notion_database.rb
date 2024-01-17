@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
-module JekyllNotion
+module JekyllFetchNotion
   class NotionDatabase < AbstractNotionResource
     # Returns an empty array or a NotionToMd:Page array
     def fetch
       return [] unless id?
 
       @fetch ||= @notion.database_query(query)[:results].map do |page|
-        NotionToMd::Page.new(:page => page, :blocks => build_blocks(page.id))
+        NotionToMd::Page.new(
+          page: page,
+          blocks: build_blocks(page.id)
+        )
       end
     end
 
@@ -16,9 +19,6 @@ module JekyllNotion
     end
 
     def sorts
-      if config["sort"]
-        Jekyll.logger.warn("Jekyll Notion:", "sort property is deprecated, use sorts instead")
-      end
       config["sorts"]
     end
 
@@ -33,7 +33,11 @@ module JekyllNotion
     private
 
     def query
-      { :database_id => id, :filter => filter, :sorts => sorts }.compact
+      {
+        database_id: id,
+        filter: filter,
+        sorts: sorts
+      }.compact
     end
   end
 end
